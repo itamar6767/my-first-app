@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>איתמר | כרטיס ביקור</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;500;900&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg1: #0d1130; --bg2: #2a1458;
+    --card: rgba(255,255,255,.07);
+    --edge: rgba(255,255,255,.18);
+    --ink: #f4f1ff; --muted: #b6b0d6;
+    --violet: #8b6cff; --sun: #ffcf5c;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    min-height: 100vh; display: grid; place-items: center; padding: 24px;
+    font-family: "Heebo", system-ui, sans-serif; color: var(--ink); line-height: 1.6;
+    background:
+      radial-gradient(60vmax 60vmax at 85% 10%, var(--bg2), transparent 60%),
+      var(--bg1);
+  }
+  .stage { perspective: 1000px; width: 100%; max-width: 560px; }
+  .card {
+    position: relative; overflow: hidden;
+    padding: 40px 36px; border-radius: 28px;
+    background: var(--card); border: 1px solid var(--edge);
+    backdrop-filter: blur(14px);
+    transform-style: preserve-3d;
+    transition: transform .15s ease-out;
+    box-shadow: 0 30px 80px rgba(0,0,0,.45);
+  }
+  .glare {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(260px circle at var(--x,50%) var(--y,0%), rgba(255,255,255,.22), transparent 70%);
+  }
+  h1 {
+    font-size: clamp(4rem, 20vw, 7rem); font-weight: 900; line-height: .95;
+    letter-spacing: -.04em;
+    background: linear-gradient(120deg, var(--ink) 30%, var(--sun));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .role { margin-top: 14px; font-size: 1.35rem; font-weight: 300; min-height: 2.2rem; }
+  .role b { font-weight: 500; color: var(--sun); }
+  .cursor { display: inline-block; width: 2px; height: 1.1em; background: var(--sun); vertical-align: -3px; margin-inline-start: 3px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .log { margin-top: 32px; padding-top: 22px; border-top: 1px solid var(--edge); }
+  .log p { color: var(--muted); font-size: .95rem; margin-bottom: 10px; }
+  .commit { display: flex; gap: 14px; padding: 7px 0; align-items: baseline; }
+  .hash { direction: ltr; font-family: "JetBrains Mono", monospace; font-size: .85rem; color: var(--violet); }
+
+  .actions { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn {
+    font: inherit; font-weight: 500; cursor: pointer; text-decoration: none;
+    padding: 12px 22px; border-radius: 999px; border: 1px solid var(--edge);
+    color: var(--ink); background: transparent; transition: background .2s, transform .2s;
+  }
+  .btn.main { background: var(--sun); color: #2a1458; border-color: var(--sun); }
+  .btn:hover { transform: translateY(-2px); background: rgba(255,255,255,.12); }
+  .btn.main:hover { background: #ffdb85; }
+  .btn:focus-visible { outline: 3px solid var(--violet); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } .card, .btn { transition: none; } }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <main class="card" id="card">
+      <div class="glare"></div>
+      <h1>איתמר</h1>
+      <p class="role"><b id="typed"></b><span class="cursor"></span></p>
+
+      <section class="log">
+        <p>היסטוריית הקומיטים שלי:</p>
+        <div class="commit"><span class="hash">a1b2c3d</span> יצרתי חשבון GitHub</div>
+        <div class="commit"><span class="hash">9f8e7d6</span> שכפלתי את הפרויקט הראשון למק</div>
+        <div class="commit"><span class="hash">4c5d6e7</span> הוספתי כרטיס ביקור לעולם</div>
+      </section>
+
+      <div class="actions">
+        <a class="btn main" href="https://github.com/itamar6767" target="_blank" rel="noopener">הפרופיל שלי ב-GitHub</a>
+        <button class="btn" id="copy" type="button">העתק אימייל</button>
+      </div>
+    </main>
+  </div>
+
+<script>
+  // החליפו לאימייל שלכם
+  const EMAIL = "you@example.com";
+
+  // אפקט הקלדה
+  const words = ["לומד גיט מאפס", "בונה את האפליקציה הראשונה", "עובד בצוות עם Pull Requests"];
+  const el = document.getElementById("typed");
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (still) { el.textContent = words[0]; }
+  else {
+    let w = 0, i = 0, del = false;
+    (function tick() {
+      const word = words[w];
+      el.textContent = word.slice(0, i);
+      if (!del && i === word.length) { del = true; return setTimeout(tick, 1600); }
+      if (del && i === 0) { del = false; w = (w + 1) % words.length; }
+      i += del ? -1 : 1;
+      setTimeout(tick, del ? 35 : 80);
+    })();
+  }
+
+  // הטיית הכרטיס אחרי העכבר
+  const card = document.getElementById("card");
+  if (!still) {
+    card.addEventListener("pointermove", e => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      card.style.transform = `rotateY(${(x - .5) * 14}deg) rotateX(${(.5 - y) * 14}deg)`;
+      card.style.setProperty("--x", x * 100 + "%");
+      card.style.setProperty("--y", y * 100 + "%");
+    });
+    card.addEventListener("pointerleave", () => card.style.transform = "");
+  }
+
+  // העתקת אימייל
+  const btn = document.getElementById("copy");
+  btn.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(EMAIL); btn.textContent = "הועתק!"; }
+    catch { btn.textContent = EMAIL; }
+    setTimeout(() => btn.textContent = "העתק אימייל", 2000);
+  });
+</script>
+</body>
+</html>
